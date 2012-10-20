@@ -21,7 +21,6 @@
 	require_once 'google-api-php-client/src/apiClient.php';
 	require_once 'google-api-php-client/src/contrib/apiPlusService.php';
 
-
 	session_start();
 
 	$client = new apiClient();
@@ -48,7 +47,8 @@
 		$client->setAccessToken($_SESSION['access_token']);
 	}
 
-	if ($client->getAccessToken()) {
+	if ($client->getAccessToken()) 
+	{
 		$me = $plus->people->get('me');
 		$url = filter_var($me['url'], FILTER_VALIDATE_URL);
 		$img = filter_var($me['image']['url'], FILTER_VALIDATE_URL);
@@ -57,77 +57,82 @@
 		$optParams = array('maxResults' => 100);
 		$activities = $plus->activities->listActivities('109152392103989095686', 'public', $optParams);
 		$activityMarkup = '';
-		foreach($activities['items'] as $activity) {
-			// These fields are currently filtered through the PHP sanitize filters.
-			// See http://www.php.net/manual/en/filter.filters.sanitize.php
-			$url = filter_var($activity['url'], FILTER_VALIDATE_URL);
-			$title = filter_var($activity['title'], FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-			$content = filter_var($activity['object']['content'], FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_HIGH);
-			$activityMarkup .= "<div class='activity'><a href='$url'>$title</a><div>$content</div></div>";
-		}
-	
+
+
+		$users = array();
 		$handle = @fopen("friends.txt", "r");
-		if ($handle) {
-			while (($buffer = fgets($handle, 4096)) !== false) {
-				echo $buffer;
+		if ($handle)
+		{
+			while (($buffer = fgets($handle, 4096)) !== false) 
+			{
+				array_push($users, trim($buffer));
 			}
-			if (!feof($handle)) {
+			if (!feof($handle)) 
+			{
 				echo "Error: unexpected fgets() fail\n";
-			}
+		 	}
 			fclose($handle);
 		}
-	
-	
-		//Getting albums and displaying the photos 
-		
-		$user_id="103414228551949951394";
-		//$user_id="default";
-		$oToken = json_decode($client->getAccessToken());
-		$cAccessToken = $oToken->access_token; 
-		
-		
-		// Sending CURL request to get list of Albums for user
-		$album_feed = 'https://picasaweb.google.com/data/feed/api/user/'.$user_id.'/';
-		$header = array( "Host: picasaweb.google.com","Gdata-version: 2", "Content-length: 0", "Authorization: OAuth ".$cAccessToken );
-		$ch = curl_init($album_feed);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-		$data = curl_exec($ch);
-		curl_close($ch);
-		
-		// Downloading images in all Google Plus Albums
-		$albums  = simplexml_load_string($data);	
-		foreach ($albums->entry as $album) :
-		    // get the ID of the current album	
-			$album_type =  $album->children('http://schemas.google.com/photos/2007')->albumType;
-			// get photos for this album if its google plus
-			if($album_type == "Buzz")
-			{
-				$album_id = $album->children('http://schemas.google.com/photos/2007')->id;	
-				echo $album_id;
-				$photo_feed = 'https://picasaweb.google.com/data/feed/api/user/'.$user_id.'/albumid/'.$album_id.'?imgmax=d';
-				$pch = curl_init($photo_feed);
-				curl_setopt($pch, CURLOPT_RETURNTRANSFER, true);
-				curl_setopt($pch, CURLOPT_HTTPHEADER, $header);
-				$photo_data = curl_exec($pch);
-				curl_close($pch);
-				$photos  = simplexml_load_string($photo_data);
-				foreach ($photos->entry as $photo) :
-					//print $photo->children('http://schemas.google.com/photos/2007');
-					$media = $photo->children('http://search.yahoo.com/mrss/');
-					$thumbnail =  $media->group->content;
-					$loc =  $thumbnail->attributes()->{'url'} ;
-					echo "<img src = '".$loc."'/>";
-					$filename =  basename($loc);
-					file_put_contents("images/".$filename, file_get_contents($loc));
-				endforeach;
-			}
-		endforeach;
-	  // The access token may have been updated lazily.
-		$_SESSION['access_token'] = $client->getAccessToken();
-	} else {
+
+
+		//Getting albums and displaying the photos
+		foreach($users as $user_id)
+		{
+
+			
+			//$user_id="default";
+			$oToken = json_decode($client->getAccessToken());
+			$cAccessToken = $oToken->access_token; 
+
+
+			// Sending CURL request to get list of Albums for user
+			$album_feed = 'https://picasaweb.google.com/data/feed/api/user/'.$user_id.'/';
+			$header = array( "Host: picasaweb.google.com","Gdata-version: 2", "Content-length: 0", "Authorization: OAuth ".$cAccessToken );
+			$ch = curl_init($album_feed);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+			$data = curl_exec($ch);
+			curl_close($ch);
+
+			// Downloading images in all Google Plus Albums
+			$albums  = simplexml_load_string($data);	
+			
+			
+			foreach ($albums->entry as $album) :
+				// get the ID of the current album	
+				$album_type =  $album->children('http://schemas.google.com/photos/2007')->albumType;
+				// get photos for this album if its google plus
+				if($album_type == "Buzz")
+				{
+					$album_id = $album->children('http://schemas.google.com/photos/2007')->id;	
+					echo "Album ID : ".$album_id." <br/>";
+					$photo_feed = 'https://picasaweb.google.com/data/feed/api/user/'.$user_id.'/albumid/'.$album_id.'?imgmax=d';
+					$pch = curl_init($photo_feed);
+					curl_setopt($pch, CURLOPT_RETURNTRANSFER, true);
+					curl_setopt($pch, CURLOPT_HTTPHEADER, $header);
+					$photo_data = curl_exec($pch);
+					curl_close($pch);
+					$photos  = simplexml_load_string($photo_data);
+					foreach ($photos->entry as $photo) :
+						//print $photo->children('http://schemas.google.com/photos/2007');
+						$media = $photo->children('http://search.yahoo.com/mrss/');
+						$mediagroup =  $media->group;
+						$loc =  $mediagroup->content->attributes()->{'url'} ;
+						echo "<img src='".$mediagroup->thumbnail[0]->attributes()->{'url'}."' /><br/><br/>";
+						$filename =  basename($loc);
+						file_put_contents("images/".$filename, file_get_contents($loc));
+					endforeach;
+				}
+			endforeach;
+			// The access token may have been updated lazily.
+			$_SESSION['access_token'] = $client->getAccessToken();
+		}
+	} 
+	else 
+	{
 		$authUrl = $client->createAuthUrl();
 	}
+
 ?>
 
 <!doctype html>
@@ -143,16 +148,16 @@
 
 <?php if(isset($activityMarkup)): ?>
 <div class="activities"> <?php
- 
+
 ?>
 </div>
 <?php endif ?>
 <?php
-	if(isset($authUrl)) {
-		print "<a class='login' href='$authUrl'>Connect Me!</a>";
-	} else {
-		print "<a class='logout' href='?logout'>Logout</a>";
-	}
+if(isset($authUrl)) {
+	print "<a class='login' href='$authUrl'>Connect Me!</a>";
+} else {
+	print "<a class='logout' href='?logout'>Logout</a>";
+}
 ?>
 </div>
 </body>
