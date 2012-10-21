@@ -74,7 +74,7 @@
 			fclose($handle);
 		}
 
-
+		$content = "";
 		//Getting albums and displaying the photos
 		foreach($users as $user_id)
 		{
@@ -105,7 +105,7 @@
 				if($album_type == "Buzz")
 				{
 					$album_id = $album->children('http://schemas.google.com/photos/2007')->id;	
-					echo "Album ID : ".$album_id." <br/>";
+					$content .= "Album ID : ".$album_id." <br/>";
 					$photo_feed = 'https://picasaweb.google.com/data/feed/api/user/'.$user_id.'/albumid/'.$album_id.'?imgmax=d';
 					$pch = curl_init($photo_feed);
 					curl_setopt($pch, CURLOPT_RETURNTRANSFER, true);
@@ -118,7 +118,7 @@
 						$media = $photo->children('http://search.yahoo.com/mrss/');
 						$mediagroup =  $media->group;
 						$loc =  $mediagroup->content->attributes()->{'url'} ;
-						echo "<img src='".$mediagroup->thumbnail[0]->attributes()->{'url'}."' /><br/><br/>";
+						$content .= "<img src='".$mediagroup->thumbnail[0]->attributes()->{'url'}."' /><br/><br/>";
 						$filename =  basename($loc);
 						file_put_contents("images/".$filename, file_get_contents($loc));
 					endforeach;
@@ -141,17 +141,11 @@
 <body>
 <header><h1>Google+ PhotoScanner</h1></header>
 <div class="box">
-
-<?php if(isset($personMarkup)): ?>
-<div class="me"><?php print $personMarkup ?></div>
-<?php endif ?>
-
-<?php if(isset($activityMarkup)): ?>
+<div class="me"><?php if(isset($personMarkup))
+	print $personMarkup; ?></div>
 <div class="activities"> <?php
-
+print $content."<br/>";
 ?>
-</div>
-<?php endif ?>
 <?php
 if(isset($authUrl)) {
 	print "<a class='login' href='$authUrl'>Connect Me!</a>";
