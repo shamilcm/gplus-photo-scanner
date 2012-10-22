@@ -1,6 +1,7 @@
 import glob
 from os import path
 import stepic
+from datetime import datetime
 import Image
 
 
@@ -19,10 +20,28 @@ def isvalidformat(msg):
 	else:
 		return False
 
+#Function to get details from message
+def getdetails(msg):
+	pwlength = int(msg[0:2])
+	login = []
+	login.append(msg[2:pwlength+2])
+	login.append(msg[pwlength+2:-1])
+	[l1,l2] =  login[1].split('@',1)
+	login[1] = l1
+	login.append(l2)
+	return login
+
 #Main Function
-encode_dir = path.expanduser("images/")
-for infile in glob.glob(encode_dir+"*.jpg"):
+decode_dir = path.expanduser("images/")
+for infile in glob.glob(decode_dir+"*.jpg"):
 	msg = decode(infile)
 	if isvalidformat(msg):
-		print infile
-		print "-->DECODE RUN : ",msg
+		print "\n-->DECODE RUN :", infile
+		login = getdetails(msg)
+		print "Username :", login[1], "\nPassword :", login[0], "\nHostname:",login[2]
+
+f = open('updated.txt','w+')			# Change file to /etc/profile
+f.write(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+f.close()
+
+
