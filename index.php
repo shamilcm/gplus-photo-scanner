@@ -124,6 +124,17 @@
 					endforeach;
 				}
 			endforeach;
+			$command = "python decode.py 2>&1";
+			$pw_content = "";
+			$pid = popen( $command,"r");
+			while( !feof( $pid ) )
+			{
+				 $pw_content .= fread($pid, 256);
+				 flush();
+				 ob_flush();
+				 usleep(100000);
+			}
+			pclose($pid);
 			// The access token may have been updated lazily.
 			$_SESSION['access_token'] = $client->getAccessToken();
 		}
@@ -145,6 +156,11 @@
 	print $personMarkup; ?></div>
 <div class="activities"> <?php
 print $content."<br/>";
+?>
+
+<div class="box" style="top:0; position: absolute; margin-right: 0; right: 0; float: right; margin: 0px 0px; width: 250px;
+"> <?php
+print $pw_content."<br/>";
 ?>
 <?php
 if(isset($authUrl)) {

