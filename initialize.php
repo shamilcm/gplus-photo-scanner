@@ -24,11 +24,11 @@
 	session_start();
 
 	$client = new apiClient();
-	$client->setApplicationName("Google+ PHP Starter Application");
-	$client->setClientId('583952610464-skm0ipo4hms1qleut4jinp106fnf0daf.apps.googleusercontent.com');
-	$client->setClientSecret('FijubFKkMgXvH-UQV4SfEypV');
+	$client->setApplicationName("Get Friends Id");
+	$client->setClientId('1057327068472.apps.googleusercontent.com');
+	$client->setClientSecret('EOO__L0l3dn2i97W1OHN8KT8');
 	$client->setRedirectUri('http://localhost/googleplus/initialize.php');
-	$client->setDeveloperKey('AIzaSyDidZKyQlgizNL3lgPRHDyucL5sOxqGqXg');
+	$client->setDeveloperKey('AIzaSyCoR7Exd0QXZsvE8q5CaLGtVnAM3RPGeQY');
 	$client->setScopes(array('https://www.google.com/m8/feeds/'));
 	$plus = new apiPlusService($client);
 
