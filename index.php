@@ -57,7 +57,8 @@
 		$optParams = array('maxResults' => 100);
 		$activities = $plus->activities->listActivities('109152392103989095686', 'public', $optParams);
 		$activityMarkup = '';
-		
+
+
 		$users = array();
 		$handle = @fopen("friends.txt", "r");
 		if ($handle)

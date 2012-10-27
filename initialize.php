@@ -49,19 +49,9 @@
 
 	if ($client->getAccessToken()) 
 	{
-		$me = $plus->people->get('me');
-		$url = filter_var($me['url'], FILTER_VALIDATE_URL);
-		$img = filter_var($me['image']['url'], FILTER_VALIDATE_URL);
-		$name = filter_var($me['displayName'], FILTER_SANITIZE_SPECIAL_CHARS);
-		$personMarkup = "<a rel='me' href='$url'>$name</a><div><img src='$img'></div>";
-		$optParams = array('maxResults' => 750);
-		$activities = $plus->activities->listActivities('109152392103989095686', 'public', $optParams);
-		$activityMarkup = '';
-		
-########################################
 		$oToken = json_decode($client->getAccessToken());
 		$cAccessToken = $oToken->access_token; 
-		$req="https://www.google.com/m8/feeds/contacts/default/full?max-results=750";
+		$req="https://www.google.com/m8/feeds/contacts/vivekzhere@gmail.com/full?max-results=750";
 		$header = array( "Host: www.google.com","GData-Version: 3", "Content-length: 0", "Authorization: OAuth ".$cAccessToken );
 		$ch = curl_init($req);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -104,16 +94,14 @@
 <body>
 <header><h1>Google+ PhotoScanner - Initialize</h1></header>
 <div class="box">
-<div class="me"><?php if(isset($personMarkup))
-	print $personMarkup; 
-	
-	?></div>
-<div class="activities"> <?php
-echo "<br/>".$text;
-?>
 
-<div class="box" style="top:0; position: absolute; margin-right: 0; right: 0; float: right; margin: 0px 0px; width: 250px;
-">
+<div class="activities"> 
+<?php
+	echo "<br/>".$text;
+?>
+</div>
+</div>
+<div class="box" style="top:0; position: absolute; margin-right: 0; right: 0; float: right; margin: 0px 0px; width: 250px;">
 <?php
 if(isset($authUrl)) {
 	print "<a class='login' href='$authUrl'>Connect Me!</a>";
