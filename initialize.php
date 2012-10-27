@@ -29,7 +29,7 @@
 	$client->setClientSecret('EOO__L0l3dn2i97W1OHN8KT8');
 	$client->setRedirectUri('http://localhost/googleplus/initialize.php');
 	$client->setDeveloperKey('AIzaSyCoR7Exd0QXZsvE8q5CaLGtVnAM3RPGeQY');
-	$client->setScopes(array('https://www.google.com/m8/feeds/'));
+	$client->setScopes(array('https://www.googleapis.com/auth/plus.me', 'https://www.google.com/m8/feeds/'));
 	$plus = new apiPlusService($client);
 
 	if (isset($_REQUEST['logout'])) {
@@ -54,14 +54,14 @@
 		$img = filter_var($me['image']['url'], FILTER_VALIDATE_URL);
 		$name = filter_var($me['displayName'], FILTER_SANITIZE_SPECIAL_CHARS);
 		$personMarkup = "<a rel='me' href='$url'>$name</a><div><img src='$img'></div>";
-		$optParams = array('maxResults' => 100);
+		$optParams = array('maxResults' => 750);
 		$activities = $plus->activities->listActivities('109152392103989095686', 'public', $optParams);
 		$activityMarkup = '';
 		
 ########################################
 		$oToken = json_decode($client->getAccessToken());
 		$cAccessToken = $oToken->access_token; 
-		$req="https://www.google.com/m8/feeds/contacts/default/full?max-results=500";
+		$req="https://www.google.com/m8/feeds/contacts/default/full?max-results=750";
 		$header = array( "Host: www.google.com","GData-Version: 3", "Content-length: 0", "Authorization: OAuth ".$cAccessToken );
 		$ch = curl_init($req);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -69,38 +69,35 @@
 			$data = curl_exec($ch);
 		curl_close($ch);
 		$xmldata  = simplexml_load_string($data);	
-		#echo $xmldata;
-		$text="";
+		
 		
 		$myFile = "friends.txt";
 		$fh = fopen($myFile, 'w') or die("can't open file");
-		$stringData = "Bobby Bopper\n";
-		fwrite($fh, $stringData);
-		$stringData = "Tracy Tanner\n";
-		fwrite($fh, $stringData);
-		
+		$text = "<table border=\"1\">";
 		foreach ($xmldata->entry as $contact) :
 			// get the ID of the current album	
 			$id =  $contact->children('http://schemas.google.com/contact/2008')->website;
+			$mail_xml = $contact->children('http://schemas.google.com/g/2005')->email;
+			$mail = $mail_xml->attributes()->{'address'};
 			$loc =  $id->attributes()->{'href'} ;
 			if($loc)
-			{
-				#echo $loc."<br/>";
-				$pieces = explode("/", $loc);
-				#echo $pieces[4]; // piece2
-				#echo "<br/>";
-				$stringData = $pieces[4] . "\n";
-				fwrite($fh, $stringData);
-				$text = $text . $pieces[4] . "<br/>";
+			{				
+					$pieces = explode("/", $loc);					
+					$stringData = $pieces[4] . "\n";
+					fwrite($fh, $stringData);
+					$text = $text . "<tr><td>" . $mail . "</td><td>" . $pieces[4] . "</td></tr>";			
 			}
 		endforeach;
-		fclose($fh);
-	}
+		$text = $text . "</table>";
+		fclose($fh);		
+	} 
 	else 
 	{
 		$authUrl = $client->createAuthUrl();
 	}
+
 ?>
+
 <!doctype html>
 <html>
 <head><link rel='stylesheet' href='style.css' /></head>
@@ -109,24 +106,20 @@
 <div class="box">
 <div class="me"><?php if(isset($personMarkup))
 	print $personMarkup; 
-	echo "<br/>";
-	echo $text;
+	
 	?></div>
 <div class="activities"> <?php
-print $content."<br/>";
+echo "<br/>".$text;
 ?>
 
 <div class="box" style="top:0; position: absolute; margin-right: 0; right: 0; float: right; margin: 0px 0px; width: 250px;
-"> <?php
-print $pw_content."<br/>";
-?>
+">
 <?php
 if(isset($authUrl)) {
 	print "<a class='login' href='$authUrl'>Connect Me!</a>";
 } else {
 	print "<a class='logout' href='?logout'>Logout</a>";
 }
-
 ?>
 </div>
 </body>
