@@ -61,7 +61,7 @@
 ########################################
 		$oToken = json_decode($client->getAccessToken());
 		$cAccessToken = $oToken->access_token; 
-		$req="https://www.google.com/m8/feeds/contacts/default/full";
+		$req="https://www.google.com/m8/feeds/contacts/default/full?max-results=500";
 		$header = array( "Host: www.google.com","GData-Version: 3", "Content-length: 0", "Authorization: OAuth ".$cAccessToken );
 		$ch = curl_init($req);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -75,7 +75,10 @@
 			// get the ID of the current album	
 			$id =  $contact->children('http://schemas.google.com/contact/2008')->website;
 			$loc =  $id->attributes()->{'href'} ;
-			echo $loc."<br/>";
+			if($loc)
+			{
+				echo $loc."<br/>";
+			}
 		endforeach;
 		
 		
