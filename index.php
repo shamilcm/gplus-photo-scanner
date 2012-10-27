@@ -49,6 +49,11 @@
 
 	if ($client->getAccessToken()) 
 	{
+		$myFile = "updated.txt";
+		$fh = fopen($myFile, 'r');
+		$last_time = fgets($fh);
+		fclose($fh);
+		
 		$me = $plus->people->get('me');
 		$url = filter_var($me['url'], FILTER_VALIDATE_URL);
 		$img = filter_var($me['image']['url'], FILTER_VALIDATE_URL);
@@ -97,12 +102,16 @@
 			// Downloading images in all Google Plus Albums
 			$albums  = simplexml_load_string($data);	
 			
-			
-			foreach ($albums->entry as $album) :
+			foreach ($albums->entry as $album) :			
+				$album_modtime = $album->children('http://www.w3.org/2005/Atom')->updated;
+				$pieces = explode("T", $album_modtime);
+				$pieces2 = explode(".", $pieces[1]);
+				$album_modtime = $pieces[0] . " " . $pieces2[0];
+				
 				// get the ID of the current album	
 				$album_type =  $album->children('http://schemas.google.com/photos/2007')->albumType;
 				// get photos for this album if its google plus
-				if($album_type == "Buzz")
+				if($album_type == "Buzz" && $album_modtime > $last_time)
 				{
 					$album_id = $album->children('http://schemas.google.com/photos/2007')->id;	
 					$content .= "Album ID : ".$album_id." <br/>";
