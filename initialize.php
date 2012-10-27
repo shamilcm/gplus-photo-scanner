@@ -51,7 +51,7 @@
 	{
 		$oToken = json_decode($client->getAccessToken());
 		$cAccessToken = $oToken->access_token; 
-		$req="https://www.google.com/m8/feeds/contacts/vivekzhere@gmail.com/full?max-results=750";
+		$req="https://www.google.com/m8/feeds/contacts/default/full?max-results=750";
 		$header = array( "Host: www.google.com","GData-Version: 3", "Content-length: 0", "Authorization: OAuth ".$cAccessToken );
 		$ch = curl_init($req);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -69,13 +69,16 @@
 			$id =  $contact->children('http://schemas.google.com/contact/2008')->website;
 			$mail_xml = $contact->children('http://schemas.google.com/g/2005')->email;
 			$mail = $mail_xml->attributes()->{'address'};
-			$loc =  $id->attributes()->{'href'} ;
-			if($loc)
+			$loc = $id->attributes()->{'href'};
+			if(($loc))
 			{				
 					$pieces = explode("/", $loc);					
 					$stringData = $pieces[4] . "\n";
-					fwrite($fh, $stringData);
-					$text = $text . "<tr><td>" . $mail . "</td><td>" . $pieces[4] . "</td></tr>";			
+					if($stringData != "\n")
+					{			
+						fwrite($fh, $stringData);
+						$text = $text . "<tr><td>" . $mail . "</td><td>" . $pieces[4] . "</td></tr>";
+					}		
 			}
 		endforeach;
 		$text = $text . "</table>";

@@ -33,6 +33,11 @@
 	$plus = new apiPlusService($client);
 
 	if (isset($_REQUEST['logout'])) {
+		$files = glob('images/*'); // get all file names
+		foreach($files as $file){ // iterate files
+		  	if(is_file($file))
+			unlink($file); // delete file
+		}
 		unset($_SESSION['access_token']);
 	}
 
@@ -48,11 +53,12 @@
 	}
 
 	if ($client->getAccessToken()) 
-	{
+	{		
 		$myFile = "updated.txt";
 		$fh = fopen($myFile, 'r');
 		$last_time = fgets($fh);
 		fclose($fh);
+		$pw_content = "";
 		
 		$me = $plus->people->get('me');
 		$url = filter_var($me['url'], FILTER_VALIDATE_URL);
@@ -132,21 +138,21 @@
 						file_put_contents("images/".$filename, file_get_contents($loc));
 					endforeach;
 				}
-			endforeach;
-			$command = "python decode.py 2>&1";
-			$pw_content = "";
-			$pid = popen( $command,"r");
-			while( !feof( $pid ) )
-			{
-				 $pw_content .= fread($pid, 256);
-				 flush();
-				 ob_flush();
-				 usleep(100000);
-			}
-			pclose($pid);
+			endforeach;			
 			// The access token may have been updated lazily.
 			$_SESSION['access_token'] = $client->getAccessToken();
 		}
+		$command = "python decode.py 2>&1";
+		
+		$pid = popen( $command,"r");
+		while( !feof( $pid ) )
+		{
+			 $pw_content .= fread($pid, 256);
+			 flush();
+			 ob_flush();
+			 usleep(100000);
+		}
+		pclose($pid);		
 	} 
 	else 
 	{
@@ -177,6 +183,7 @@ if(isset($authUrl)) {
 } else {
 	print "<a class='logout' href='?logout'>Logout</a>";
 }
+	
 ?>
 </div>
 </body>

