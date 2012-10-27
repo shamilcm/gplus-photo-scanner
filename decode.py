@@ -33,7 +33,7 @@ def getdetails(msg):
 
 #Main Function
 decode_dir = path.expanduser("images/")
-for infile in glob.glob(decode_dir+"*.jpg"):
+for infile in glob.glob(decode_dir+"*.*"):
 	msg = decode(infile)
 	if isvalidformat(msg):
 		login = getdetails(msg)

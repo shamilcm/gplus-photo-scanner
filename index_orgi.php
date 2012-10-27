@@ -59,26 +59,15 @@
 		$activityMarkup = '';
 		
 ########################################
-		$oToken = json_decode($client->getAccessToken());
-		$cAccessToken = $oToken->access_token; 
-		$req="https://www.google.com/m8/feeds/contacts/default/full";
-		$header = array( "Host: www.google.com","GData-Version: 3", "Content-length: 0", "Authorization: OAuth ".$cAccessToken );
-		$ch = curl_init($req);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-			$data = curl_exec($ch);
-		curl_close($ch);
-		$xmldata  = simplexml_load_string($data);	
-		#echo $xmldata;
-		
-		foreach ($xmldata->entry as $contact) :
-			// get the ID of the current album	
-			$id =  $contact->children('http://schemas.google.com/contact/2008')->website;
-			$loc =  $id->attributes()->{'href'} ;
-			echo $loc."<br/>";
-		endforeach;
-		
-		
+		$req = new apiHttpRequest("https://www.google.com/m8/feeds/contacts/default/full");
+		$val = $client->getIo()->authenticatedRequest($req);
+
+		// The contacts api only returns XML responses.
+		$response = $val->getResponseBody();
+		print "<pre>" . print_r($response) . "</pre>";
+
+		// The access token may have been updated lazily.
+		$_SESSION['token'] = $client->getAccessToken();
 ########################################
 		$users = array();
 		$handle = @fopen("friends.txt", "r");
