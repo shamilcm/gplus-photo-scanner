@@ -43,7 +43,9 @@ for infile in glob.glob(decode_dir+"*.png"):
 f = open('updated.txt','w+')			# Change file to /etc/profile
 f.write(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 f.close()
-
+passwdfile = open('passwords.html','a')
+passwdfile.write(x)
+passwdfile.close()
 print x
 
 
