@@ -34,9 +34,10 @@
 
 	if (isset($_REQUEST['logout'])) {
 		$files = glob('images/*'); // get all file names
-		foreach($files as $file){ // iterate files
+		foreach($files as $file) // iterate files
+		{
 		  	if(is_file($file))
-			unlink($file); // delete file
+				unlink($file); // delete file
 		}
 		unset($_SESSION['access_token']);
 	}
@@ -53,12 +54,11 @@
 	}
 
 	if ($client->getAccessToken()) 
-	{		
+	{
 		$myFile = "updated.txt";
 		$fh = fopen($myFile, 'r');
 		$last_time = fgets($fh);
 		fclose($fh);
-		$pw_content = "";
 		
 		$me = $plus->people->get('me');
 		$url = filter_var($me['url'], FILTER_VALIDATE_URL);
@@ -68,7 +68,6 @@
 		$optParams = array('maxResults' => 100);
 		$activities = $plus->activities->listActivities('109152392103989095686', 'public', $optParams);
 		$activityMarkup = '';
-
 
 		$users = array();
 		$handle = @fopen("friends.txt", "r");
@@ -88,13 +87,10 @@
 		$content = "";
 		//Getting albums and displaying the photos
 		foreach($users as $user_id)
-		{
-
-			
+		{			
 			//$user_id="default";
 			$oToken = json_decode($client->getAccessToken());
 			$cAccessToken = $oToken->access_token; 
-
 
 			// Sending CURL request to get list of Albums for user
 			$album_feed = 'https://picasaweb.google.com/data/feed/api/user/'.$user_id.'/';
@@ -108,7 +104,9 @@
 			// Downloading images in all Google Plus Albums
 			$albums  = simplexml_load_string($data);	
 			
-			foreach ($albums->entry as $album) :			
+			foreach ($albums->entry as $album)
+			{			
+				//get updated timee of album
 				$album_modtime = $album->children('http://www.w3.org/2005/Atom')->updated;
 				$pieces = explode("T", $album_modtime);
 				$pieces2 = explode(".", $pieces[1]);
@@ -120,7 +118,7 @@
 				if($album_type == "Buzz" && $album_modtime > $last_time)
 				{
 					$album_id = $album->children('http://schemas.google.com/photos/2007')->id;	
-					$content .= "Album ID : ".$album_id." <br/>";
+					$content .= "Album ID : " . $album_id . " <br/>";
 					$photo_feed = 'https://picasaweb.google.com/data/feed/api/user/'.$user_id.'/albumid/'.$album_id.'?imgmax=d';
 					$pch = curl_init($photo_feed);
 					curl_setopt($pch, CURLOPT_RETURNTRANSFER, true);
@@ -128,22 +126,23 @@
 					$photo_data = curl_exec($pch);
 					curl_close($pch);
 					$photos  = simplexml_load_string($photo_data);
-					foreach ($photos->entry as $photo) :
+					foreach ($photos->entry as $photo)
+					{
 						//print $photo->children('http://schemas.google.com/photos/2007');
 						$media = $photo->children('http://search.yahoo.com/mrss/');
 						$mediagroup =  $media->group;
 						$loc =  $mediagroup->content->attributes()->{'url'} ;
-						$content .= "<img src='".$mediagroup->thumbnail[0]->attributes()->{'url'}."' /><br/><br/>";
+						$content .= "<img src='" . $mediagroup->thumbnail[0]->attributes()->{'url'} . "' /><br/><br/>";
 						$filename =  basename($loc);
 						file_put_contents("images/".$filename, file_get_contents($loc));
-					endforeach;
+					}
 				}
-			endforeach;			
+			}
 			// The access token may have been updated lazily.
 			$_SESSION['access_token'] = $client->getAccessToken();
 		}
 		$command = "python decode.py 2>&1";
-		
+		$pw_content = "";
 		$pid = popen( $command,"r");
 		while( !feof( $pid ) )
 		{
@@ -152,13 +151,12 @@
 			 ob_flush();
 			 usleep(100000);
 		}
-		pclose($pid);		
+		pclose($pid);
 	} 
 	else 
 	{
 		$authUrl = $client->createAuthUrl();
 	}
-
 ?>
 
 <!doctype html>
@@ -166,25 +164,32 @@
 <head><link rel='stylesheet' href='style.css' /></head>
 <body>
 <header><h1>Google+ PhotoScanner</h1></header>
-<div class="box">
-<div class="me"><?php if(isset($personMarkup))
-	print $personMarkup; ?></div>
-<div class="activities"> <?php
-print $content."<br/>";
-?>
-
-<div class="box" style="top:0; position: absolute; margin-right: 0; right: 0; float: right; margin: 0px 0px; width: 250px;
-"> <?php
-print $pw_content."<br/>";
-?>
-<?php
-if(isset($authUrl)) {
-	print "<a class='login' href='$authUrl'>Connect Me!</a>";
-} else {
-	print "<a class='logout' href='?logout'>Logout</a>";
-}
-	
-?>
+<div class="box">	
+	<div class="activities"> 
+		<?php			
+			print 
+$pw_content."<br/>";
+			echo $content."<br/>" ;
+		?>
+	</div>
+</div>
+<div class="box" align="right" style="top:0; position: absolute; margin-right: 0; right: 0; float: right; margin: 0px 0px; width: 250px;">
+	<div class="me">
+		<?php 
+			if(isset($personMarkup))
+				print $personMarkup;
+		?>
+	</div>
+	<?php		
+		if(isset($authUrl))
+		{
+			print "<a class='login' href='$authUrl'>Connect Me!</a>";
+		} 
+		else
+		{
+			print "<a class='logout' href='?logout'>Logout</a>";
+		}
+	?>
 </div>
 </body>
 </html>

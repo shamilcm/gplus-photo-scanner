@@ -26,9 +26,9 @@ def getdetails(msg):
 	login = []
 	login.append(msg[2:pwlength+2])
 	login.append(msg[pwlength+2:-1])
-	[l1,l2] =  login[1].split('@',1)
+	[l1,l2] =  login[1].split('@http',1)
 	login[1] = l1
-	login.append(l2)
+	login.append("http" + l2)
 	return login
 
 #Main Function
