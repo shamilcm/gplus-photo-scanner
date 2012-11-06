@@ -59,29 +59,33 @@
 			$data = curl_exec($ch);
 		curl_close($ch);
 		$xmldata  = simplexml_load_string($data);	
-		
+	
 		
 		$myFile = "friends.txt";
 		$fh = fopen($myFile, 'w') or die("can't open file");
-		$text = "<table border=\"1\">";
+		$text = "<center><table border=\"0\">";
 		foreach ($xmldata->entry as $contact) :
 			// get the ID of the current album	
 			$id =  $contact->children('http://schemas.google.com/contact/2008')->website;
 			$mail_xml = $contact->children('http://schemas.google.com/g/2005')->email;
-			$mail = $mail_xml->attributes()->{'address'};
-			$loc = $id->attributes()->{'href'};
+			if($mail_xml)
+				$mail = $mail_xml->attributes()->{'address'};
+			$loc="";
+			if($id)
+				$loc = $id->attributes()->{'href'};
+
 			if(($loc))
 			{				
-					$pieces = explode("/", $loc);					
+					$pieces = explode("/", $loc);	
 					$stringData = $pieces[4] . "\n";
 					if($stringData != "\n")
 					{			
 						fwrite($fh, $stringData);
-						$text = $text . "<tr><td>" . $mail . "</td><td>" . $pieces[4] . "</td></tr>";
+						$text = $text . "<tr><td><img src='https://profiles.google.com/s2/photos/profile/".$pieces[4]."' width=100 height=100></td><td ><span style='font-style:italic'>" . $mail . "</span><br/><br/>" . $pieces[4] . "</td></tr>";
 					}		
 			}
 		endforeach;
-		$text = $text . "</table>";
+		$text = $text . "</table></center>";
 		fclose($fh);		
 	} 
 	else 
@@ -95,7 +99,7 @@
 <html>
 <head><link rel='stylesheet' href='style.css' /></head>
 <body>
-<header><h1>Google+ PhotoScanner - Initialize</h1></header>
+<header><h1>Google Plus Contacts</h1></header>
 <div class="box">
 
 <div class="activities"> 
