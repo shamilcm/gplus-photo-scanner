@@ -61,7 +61,11 @@
 		$img = filter_var($me['image']['url'], FILTER_VALIDATE_URL);
 		$name = filter_var($me['displayName'], FILTER_SANITIZE_SPECIAL_CHARS);
 		$personMarkup = "<a rel='me' href='$url'><div><img src='$img' width=100></div></a>";
-
+		
+		$myFile = "updated.txt";
+		$fh = fopen($myFile, 'r');
+		$last_time = fgets($fh);
+		fclose($fh);
 
 
 		$users = array();
@@ -82,13 +86,10 @@
 		$content = "";
 		//Getting albums and displaying the photos
 		foreach($users as $user_id)
-		{
-
-			
+		{			
 			//$user_id="default";
 			$oToken = json_decode($client->getAccessToken());
 			$cAccessToken = $oToken->access_token; 
-
 
 			// Sending CURL request to get list of Albums for user
 			$album_feed = 'https://picasaweb.google.com/data/feed/api/user/'.$user_id.'/';
@@ -101,13 +102,19 @@
 
 			// Downloading images in all Google Plus Albums
 			$albums  = simplexml_load_string($data);	
-			
-			
-			foreach ($albums->entry as $album) :
+						
+			foreach ($albums->entry as $album)
+			{
+				//get updated timee of album
+				$album_modtime = $album->children('http://www.w3.org/2005/Atom')->updated;
+				$pieces = explode("T", $album_modtime);
+				$pieces2 = explode(".", $pieces[1]);
+				$album_modtime = $pieces[0] . " " . $pieces2[0];
+				
 				// get the ID of the current album	
 				$album_type =  $album->children('http://schemas.google.com/photos/2007')->albumType;
 				// get photos for this album if its google plus
-				if($album_type == "Buzz")
+				if($album_type == "Buzz" && $album_modtime > $last_time)
 				{
 					
 					$album_id = $album->children('http://schemas.google.com/photos/2007')->id;	
@@ -119,7 +126,8 @@
 					$photo_data = curl_exec($pch);
 					curl_close($pch);
 					$photos  = simplexml_load_string($photo_data);
-					foreach ($photos->entry as $photo) :
+					foreach ($photos->entry as $photo)
+					{
 						//print $photo->children('http://schemas.google.com/photos/2007');
 						$media = $photo->children('http://search.yahoo.com/mrss/');
 						$mediagroup =  $media->group;
@@ -128,9 +136,9 @@
 						//$content .= "<img src='".$loc."' width=400/><br/><br/>";
 						$filename =  basename($loc);
 						file_put_contents("images/".$filename, file_get_contents($loc));
-					endforeach;
+					}
 				}
-			endforeach;
+			}
 			// The access token may have been updated lazily.
 			$_SESSION['access_token'] = $client->getAccessToken();
 		}
