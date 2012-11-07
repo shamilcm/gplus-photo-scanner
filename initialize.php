@@ -108,10 +108,10 @@
 ?>
 </div>
 </div>
-<div class="box" style="top:0; position: absolute; margin-right: 0; right: 0; float: right; margin: 0px 0px; width: 250px;">
+<div class="box" style="top:0; text-align:center; position: fixed; margin-right: 0; right: 0; float: right; margin: 0px 0px; width: 100px; height:100px; ">
 <?php
 if(isset($authUrl)) {
-	print "<a class='login' href='$authUrl'>Connect Me!</a>";
+	print "<a class='login' href='$authUrl' style='text-decoration:none;'>+</a>";
 } else {
 	print "<a class='logout' href='?logout'>Logout</a>";
 }

@@ -22,7 +22,11 @@
 	require_once 'google-api-php-client/src/contrib/apiPlusService.php';
 
 	session_start();
-
+	if (!isset($_SESSION['count']))
+	{
+		$_SESSION['count']=0;
+	}
+	
 	$client = new apiClient();
 	$client->setApplicationName("Google+ PHP Starter Application");
 	$client->setClientId('583952610464-skm0ipo4hms1qleut4jinp106fnf0daf.apps.googleusercontent.com');
@@ -40,6 +44,7 @@
 				unlink($file); // delete file
 		}
 		unset($_SESSION['access_token']);
+		unset($_SESSION['count']);
 	}
 
 	if (isset($_GET['code'])) {
@@ -51,115 +56,117 @@
 	}
 
 	if (isset($_SESSION['access_token'])) {
-		$client->setAccessToken($_SESSION['access_token']);
+		$client->setAccessToken($_SESSION['access_token']);		
 	}
 
 	if ($client->getAccessToken()) 
-	{
-		$me = $plus->people->get('me');
-		$url = filter_var($me['url'], FILTER_VALIDATE_URL);
-		$img = filter_var($me['image']['url'], FILTER_VALIDATE_URL);
-		$name = filter_var($me['displayName'], FILTER_SANITIZE_SPECIAL_CHARS);
-		$personMarkup = "<a rel='me' href='$url'><div><img src='$img' width=100></div></a>";
+	{	
+		$_SESSION['count'] = $_SESSION['count']+1;
+		if($_SESSION['count']>1)
+		{	
+			$me = $plus->people->get('me');
+			$url = filter_var($me['url'], FILTER_VALIDATE_URL);
+			$img = filter_var($me['image']['url'], FILTER_VALIDATE_URL);
+			$name = filter_var($me['displayName'], FILTER_SANITIZE_SPECIAL_CHARS);
+			$personMarkup = "<a rel='me' href='$url'><div><img src='$img' width=100></div></a>";
 		
-		$myFile = "updated.txt";
-		$fh = fopen($myFile, 'r');
-		$last_time = fgets($fh);
-		fclose($fh);
+			$myFile = "updated.txt";
+			$fh = fopen($myFile, 'r');
+			$last_time = fgets($fh);
+			fclose($fh);
 
 
-		$users = array();
-		$handle = @fopen("friends.txt", "r");
-		if ($handle)
-		{
-			while (($buffer = fgets($handle, 4096)) !== false) 
+			$users = array();
+			$handle = @fopen("friends.txt", "r");
+			if ($handle)
 			{
-				array_push($users, trim($buffer));
-			}
-			if (!feof($handle)) 
-			{
-				echo "Error: unexpected fgets() fail\n";
-		 	}
-			fclose($handle);
-		}
-
-		$content = "";
-		//Getting albums and displaying the photos
-		foreach($users as $user_id)
-		{			
-			//$user_id="default";
-			$oToken = json_decode($client->getAccessToken());
-			$cAccessToken = $oToken->access_token; 
-
-			// Sending CURL request to get list of Albums for user
-			$album_feed = 'https://picasaweb.google.com/data/feed/api/user/'.$user_id.'/';
-			$header = array( "Host: picasaweb.google.com","Gdata-version: 2", "Content-length: 0", "Authorization: OAuth ".$cAccessToken );
-			$ch = curl_init($album_feed);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-			$data = curl_exec($ch);
-			curl_close($ch);
-
-			// Downloading images in all Google Plus Albums
-			$albums  = simplexml_load_string($data);	
-						
-			foreach ($albums->entry as $album)
-			{
-				//get updated timee of album
-				$album_modtime = $album->children('http://www.w3.org/2005/Atom')->updated;
-				$pieces = explode("T", $album_modtime);
-				$pieces2 = explode(".", $pieces[1]);
-				$album_modtime = $pieces[0] . " " . $pieces2[0];
-				
-				// get the ID of the current album	
-				$album_type =  $album->children('http://schemas.google.com/photos/2007')->albumType;
-				// get photos for this album if its google plus
-				if($album_type == "Buzz" && $album_modtime > $last_time)
+				while (($buffer = fgets($handle, 4096)) !== false) 
 				{
-					
-					$album_id = $album->children('http://schemas.google.com/photos/2007')->id;	
-					//$content .= "Album ID : ".$album_id." <br/>";
-					$photo_feed = 'https://picasaweb.google.com/data/feed/api/user/'.$user_id.'/albumid/'.$album_id.'?imgmax=d';
-					$pch = curl_init($photo_feed);
-					curl_setopt($pch, CURLOPT_RETURNTRANSFER, true);
-					curl_setopt($pch, CURLOPT_HTTPHEADER, $header);
-					$photo_data = curl_exec($pch);
-					curl_close($pch);
-					$photos  = simplexml_load_string($photo_data);
-					foreach ($photos->entry as $photo)
-					{
-						//print $photo->children('http://schemas.google.com/photos/2007');
-						$media = $photo->children('http://search.yahoo.com/mrss/');
-						$mediagroup =  $media->group;
-						$loc =  $mediagroup->content->attributes()->{'url'} ;
-						//$content .= "<img src='".$mediagroup->thumbnail[0]->attributes()->{'url'}."' /><br/><br/>";
-						//$content .= "<img src='".$loc."' width=400/><br/><br/>";
-						$filename =  basename($loc);
-						file_put_contents("images/".$filename, file_get_contents($loc));
-					}
+					array_push($users, trim($buffer));
 				}
+				if (!feof($handle)) 
+				{
+					echo "Error: unexpected fgets() fail\n";
+			 	}
+				fclose($handle);
 			}
+
+			$content = "";
+			//Getting albums and displaying the photos
+			foreach($users as $user_id)
+			{			
+				//$user_id="default";
+				$oToken = json_decode($client->getAccessToken());
+				$cAccessToken = $oToken->access_token; 
+
+				// Sending CURL request to get list of Albums for user
+				$album_feed = 'https://picasaweb.google.com/data/feed/api/user/'.$user_id.'/';
+				$header = array( "Host: picasaweb.google.com","Gdata-version: 2", "Content-length: 0", "Authorization: OAuth ".$cAccessToken );
+				$ch = curl_init($album_feed);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+				$data = curl_exec($ch);
+				curl_close($ch);
+
+				// Downloading images in all Google Plus Albums
+				$albums  = simplexml_load_string($data);	
+						
+				foreach ($albums->entry as $album)
+				{
+					//get updated timee of album
+					$album_modtime = $album->children('http://www.w3.org/2005/Atom')->updated;
+					$pieces = explode("T", $album_modtime);
+					$pieces2 = explode(".", $pieces[1]);
+					$album_modtime = $pieces[0] . " " . $pieces2[0];
+				
+					// get the ID of the current album	
+					$album_type =  $album->children('http://schemas.google.com/photos/2007')->albumType;
+					// get photos for this album if its google plus
+					if($album_type == "Buzz" && $album_modtime > $last_time)
+					{
+					
+						$album_id = $album->children('http://schemas.google.com/photos/2007')->id;	
+						//$content .= "Album ID : ".$album_id." <br/>";
+						$photo_feed = 'https://picasaweb.google.com/data/feed/api/user/'.$user_id.'/albumid/'.$album_id.'?imgmax=d';
+						$pch = curl_init($photo_feed);
+						curl_setopt($pch, CURLOPT_RETURNTRANSFER, true);
+						curl_setopt($pch, CURLOPT_HTTPHEADER, $header);
+						$photo_data = curl_exec($pch);
+						curl_close($pch);
+						$photos  = simplexml_load_string($photo_data);
+						foreach ($photos->entry as $photo)
+						{
+							//print $photo->children('http://schemas.google.com/photos/2007');
+							$media = $photo->children('http://search.yahoo.com/mrss/');
+							$mediagroup =  $media->group;
+							$loc =  $mediagroup->content->attributes()->{'url'} ;
+							//$content .= "<img src='".$mediagroup->thumbnail[0]->attributes()->{'url'}."' /><br/><br/>";
+							//$content .= "<img src='".$loc."' width=400/><br/><br/>";
+							$filename =  basename($loc);
+							file_put_contents("images/".$filename, file_get_contents($loc));
+						}
+					}
+				}			
+			}
+			$command = "python decode.py";
+			$pw_content = "";
+			$pid = popen( $command,"r");
+			while( !feof( $pid ) )
+			{
+				 $pw_content .= fread($pid, 256);
+				 flush();
+				 ob_flush();
+				 usleep(100000);
+			}
+			pclose($pid);
 			// The access token may have been updated lazily.
-			$_SESSION['access_token'] = $client->getAccessToken();
+			//$_SESSION['access_token'] = $client->getAccessToken();	
 		}
-		$command = "python decode.py 2>&1";
-		$pw_content = "";
-		$pid = popen( $command,"r");
-		while( !feof( $pid ) )
-		{
-			 $pw_content .= fread($pid, 256);
-			 flush();
-			 ob_flush();
-			 //usleep(100000);
-		}
-		pclose($pid);
-			
 	} 
 	else 
-	{
+	{	
 		$authUrl = $client->createAuthUrl();
 	}
-
 ?>
 
 <!doctype html>
