@@ -30,9 +30,9 @@
 	$client = new apiClient();
 	$client->setApplicationName("Google+ PHP Starter Application");
 	$client->setClientId('583952610464-skm0ipo4hms1qleut4jinp106fnf0daf.apps.googleusercontent.com');
-	$client->setClientSecret('FijubFKkMgXvH-UQV4SfEypV');
+	$client->setClientSecret('');
 	$client->setRedirectUri('http://localhost/googleplus/index.php');
-	$client->setDeveloperKey('AIzaSyDiz5RmJmrz09Oxd8e7J8uDXXhmXJ_EJ3M');
+	$client->setDeveloperKey('');
 	$client->setScopes(array('https://www.googleapis.com/auth/plus.me', 'https://picasaweb.google.com/data/'));
 	$plus = new apiPlusService($client);
 
